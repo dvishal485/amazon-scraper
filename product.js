@@ -18,26 +18,26 @@ const product = async (query) => {
 
 
     try {
-        var price = product_page.split('<span id="priceblock_ourprice" class="a-size-medium a-color-price priceBlockBuyingPriceString">')[1].split('</span>')[0]
+        var current_price = product_page.split('<span id="priceblock_ourprice" class="a-size-medium a-color-price priceBlockBuyingPriceString">')[1].split('</span>')[0]
         var original_price = product_page.split('<span class="priceBlockStrikePriceString a-text-strike">')[1].split('</span>')[0]
-        if (!original_price) { var original_price = price }
+        if (!original_price) { var original_price = current_price }
     } catch (error) {
         try {
-            var price = (product_page.split('<span id="priceblock_ourprice" class="a-size-medium a-color-price priceBlockBuyingPriceString">')[1].split('</span>')[0]).split(' - ')[0]
+            var current_price = (product_page.split('<span id="priceblock_ourprice" class="a-size-medium a-color-price priceBlockBuyingPriceString">')[1].split('</span>')[0]).split(' - ')[0]
             var original_price = (product_page.split('<span id="priceblock_ourprice" class="a-size-medium a-color-price priceBlockBuyingPriceString">')[1].split('</span>')[0]).split(' - ')[1]
-            if (!original_price) { var original_price = price }
+            if (!original_price) { var original_price = current_price }
         } catch (erro) {
             try {
-                var price = product_page.split('<span id="priceblock_dealprice" class="a-size-medium a-color-price priceBlockDealPriceString">')[1].split('</span>')[0]
+                var current_price = product_page.split('<span id="priceblock_dealprice" class="a-size-medium a-color-price priceBlockDealPriceString">')[1].split('</span>')[0]
                 var original_price = product_page.split('<span class="priceBlockStrikePriceString a-text-strike">')[1].split('</span>')[0]
-                if (!original_price) { var original_price = price }
+                if (!original_price) { var original_price = current_price }
             } catch (err) {
                 try {
-                    var price = product_page.split('<span id="priceblock_saleprice" class="a-size-medium a-color-price priceBlockSalePriceString">')[1].split('</span>')[0]
+                    var current_price = product_page.split('<span id="priceblock_saleprice" class="a-size-medium a-color-price priceBlockSalePriceString">')[1].split('</span>')[0]
                     var original_price = product_page.split('<span class="priceBlockStrikePriceString a-text-strike">')[1].split('</span>')[0].replace(/\n/gi, '')
-                    if (!original_price) { var original_price = price }
+                    if (!original_price) { var original_price = current_price }
                 } catch (er) {
-                    var price = null
+                    var current_price = null
                     var original_price = null
                 }
             }
@@ -46,8 +46,8 @@ const product = async (query) => {
     if (original_price !== null) {
         original_price = parseFloat(original_price.replace('₹', '').replace(/,/g, '').trim())
     }
-    if (price !== null) {
-        price = parseFloat(price.replace('₹', '').replace(/,/g, '').trim())
+    if (current_price !== null) {
+        current_price = parseFloat(current_price.replace('₹', '').replace(/,/g, '').trim())
     }
     try {
         var discounted = current_price < original_price
@@ -78,7 +78,7 @@ const product = async (query) => {
     try {
         var product_detail = {
             name: (product_page.split('<span id="productTitle" class="a-size-large product-title-word-break">')[1].split('</span>')[0]).replaceAll('\n', '').trim(),
-            'current_price': price,
+            current_price,
             original_price,
             discounted,
             discount_percent,
