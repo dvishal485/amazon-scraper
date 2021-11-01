@@ -3,17 +3,17 @@ const product = async (query) => {
     const product_page = await (await fetch(`https://www.amazon.in/${query}`)).text()
 
     try {
-        var features = []
+        var highlights = []
         var feat = product_page.split('<ul class="a-unordered-list a-vertical a-spacing-mini">')[1].split('</ul>')[0]
         var feat = feat.split('<span class="a-list-item">')
         for (var i = 1; i < feat.length; i++) {
             try {
-                features.push((feat[i].split('</span>')[0].replaceAll('\n', '')).replaceAll('"', "'"))
+                highlights.push((feat[i].split('</span>')[0].replaceAll('\n', '')).replaceAll('"', "'"))
             } catch (err) { }
         }
 
     } catch (err) {
-        var features = [null]
+        var highlights = [null]
     }
 
 
@@ -49,6 +49,10 @@ const product = async (query) => {
     if (price !== null) {
         price = parseFloat(price.replace('₹', '').replace(/,/g, '').trim())
     }
+    try {
+        var discounted = current_price < original_price
+        var discount_percent = Math.ceil(100 * (original_price - current_price) / original_price)
+    } catch (e) { }
 
     try {
         var in_stock = product_page.split('id="availability"')[1].split('</div>')[0].toLowerCase().lastIndexOf('in stock.') !== -1
@@ -68,31 +72,29 @@ const product = async (query) => {
         var rating_details = { ratings_count, rating }
     } catch (er) {
         console.log(er.message)
-        var rating_details = null
+        var rating_details = { ratings_count: null, rating: null }
     }
 
     try {
         var product_detail = {
-            name: (product_page.split('<span id="productTitle" class="a-size-large product-title-word-break">')[1].split('</span>')[0]).replaceAll('\n', ''),
-            image,
-            price,
+            name: (product_page.split('<span id="productTitle" class="a-size-large product-title-word-break">')[1].split('</span>')[0]).replaceAll('\n', '').trim(),
+            'current_price': price,
             original_price,
+            discounted,
+            discount_percent,
+            'rating': rating_details.rating,
+            'ratings_count': rating_details.ratings_count,
             in_stock,
-            rating_details,
-            features,
-            product_link: `https://www.amazon.in/${query}`
+            share_url: `https://www.amazon.in/${query}`,
+            thumbnails: [image],
+            highlights
         }
     } catch (err) {
         var product_detail = null
     }
 
 
-    return JSON.stringify({
-        status: true,
-        query,
-        fetch_from: `https://www.amazon.in/${query}`,
-        product_detail
-    }, null, 2)
+    return JSON.stringify(product_detail, null, 2)
 }
 
 const lastEntry = (array) => array[array.length - 1]
